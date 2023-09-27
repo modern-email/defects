@@ -1,58 +1,115 @@
-## Formats
+# Formats
 
-### EML/IMF
+## EML/IMF
 
-General advice: ...
+...
 
-| Title                | Description                                                      | Reference                                        | Observed in | Reported | Status  | Comment                            |
-|----------------------|------------------------------------------------------------------|--------------------------------------------------|-------------|----------|---------|------------------------------------|
-|                      |                                                                  |                                                  |             |          |         |                                    |
+# Protocols
 
-## Protocols
-
-### IMAP
+## IMAP
 
 Note: "[...] do not attempt to deduce command syntax from the command section alone; instead refer to the Formal Syntax section."
 
-#### Defects
+### Observed defects
 
-| Title                | Description                                                      | Reference                                        | Observed in | Reported | Status  | Comment                            |
-|----------------------|------------------------------------------------------------------|--------------------------------------------------|-------------|----------|---------|------------------------------------|
-| Zero UID             | UID MUST be >= 1 but was `0`                                     | `uniqueid = nz-number` RFC 3501                  | Outlook     | No       | Unknown |                                    |
-| Negative line length | `body-fld-lines` should be >= 0 and < 4_294_967_296 but was `-1` | `body-fld-lines  = number` RFC 3501              | Dovecot     | No       | Unknown |                                    |
-| Missing `text`       | `HIGHESTMODSEQ` status should have a `text` but didn't           | https://www.rfc-editor.org/rfc/rfc7162 section 7 | Gmail       | Yes      | Open    | Examples in RFC are wrong. Errata? |
-| CHANGEDSINCE 0       | CHANGEDSINCE 0 was sent for an account on a mail server that was update to support CONDSTORE (did not have the CONDSTORE extension before). CHANGEDSINCE should have been omitted from the command. | chgsince-fetch-mod rfc/7162:2479 mod-sequence-value rfc/7162:2551 | iPhone Mail (16.5.1) | Yes      | Open    | |
+<details>
+<summary>Negative line length breaks parsing</summary>
+An IMAP server tells the number of lines in a message using the `body-fld-lines` ABNF rule:
+
+```abnf
+body-fld-lines = number
+number         = 1*DIGIT
+                   ; Unsigned 32-bit integer
+                   ; (0 <= n < 4,294,967,296)
+```
+
+According to the standard, negative values are not allowed. Still, Dovecot was observed sending `-1` breaking parsing.
+
+* Observed in: Dovecot (unknown version)
+* Reported: No
+* Status: Unknown
+* Comment: None
+* Proposed solution(s):
+	* Accept `-1`, emit warning, and rectify to `0` (implemented in [imap-codec])
+</details>
+
+<details>
+<summary>Missing `text`</summary>
+Status responses in IMAP MUST have a non-empty `text` (and preceeding space).
+
+```abnf
+resp-text = ["[" resp-text-code "]" SP] text
+text      = 1*TEXT-CHAR
+TEXT-CHAR = <any CHAR except CR and LF>
+```
+
+It was observed that Gmail has neither the `SP` nor the `text` when using `HIGHESTMODSEQ`.
+
+* Observed in: Gmail (Sep. 27, 2023)
+* Reported: Yes
+* Status: [Open](https://issuetracker.google.com/issues/289877509)
+* Comment: The examples in RFC 7162 are wrong, see [errata](https://www.rfc-editor.org/errata/eid5055).
+* Proposed solution(s):
+	* Wait for Gmail to fix it (or comment on issue)
+	* Replace with a sentinel value and log warning (implemented in [imap-codec])
+	* Discard, but make sure not to reproduce the defect
+</details>
+
+<details>
+<summary>CHANGEDSINCE 0</summary>
+
+CHANGEDSINCE 0 was sent for an account on a mail server that was update to support CONDSTORE (did not have the CONDSTORE extension before). CHANGEDSINCE should have been omitted from the command.
+
+```abnf
+mod-sequence-value = 1*DIGIT
+                      ;; Positive unsigned 63-bit integer
+                      ;; (mod-sequence)
+                      ;; (1 <= n <= 9,223,372,036,854,775,807).
+```
+
+* Observed in: iPhone Mail (16.5.1)
+* Reported: Yes
+* Status: Open
+* Comment: None
+* Proposed solution(s): None
+</details>
 
 #### Ambiguities
 
-* `code` and `text` didn't play well ...
+<details>
+<summary>`code` and `text` are ambiguous</summary>
 
-```
+```rust
 Greeting { kind: Ok, code: None, text: "[FOO] ..." }
+```
 
 ... will result in ...
 
+```imap
 * OK [FOO] ...
+```
 
 ... and be interpreted like ...
 
+```rust
 Greeting { kind: Ok, code: Foo, text: "..." }
+```
 
 And ...
 
+```rust
 Greeting { kind: Ok, code: None, text: "[...]" }
+```
 
 ... can't be expressed.
-```
+</details>
 
-* Unclear command continuation response(s).
-  * When is base64 allowed in command continuation response?
+<details>
+<summary>Unclear command continuation response(s)</summary>
+Unclear when base64 is allowed in command continuation responses.
 
-```
-`+ Rm9vbw==` could be interpreted as "Fooo" (base64) or just "Rm9vbw==" (text).
-```
+`+ Rm9vbw==` could be interpreted as `Fooo` (base64) or just `Rm9vbw==` (text).
+</details>
 
-
-
-
-Created with https://www.tablesgenerator.com/markdown_tables
+[imap-codec]: https://github.com/duesee/imap-codec
+[mox]: https://github.com/mjl-/mox
