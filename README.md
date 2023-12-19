@@ -23,9 +23,9 @@ number         = 1*DIGIT
                    ; (0 <= n < 4,294,967,296)
 ```
 
-According to the standard, negative values are not allowed. Still, Dovecot was observed sending `-1` breaking parsing.
+According to the standard, negative values are not allowed. Still, `-1` was observed breaking parsing.
 
-* Observed in: Dovecot (unknown version)
+* Observed in: Unknown (Dovecot, proxied to Outlook?)
 * Reported: No
 * Status: Unknown
 * Comment: None
