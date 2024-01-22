@@ -25,10 +25,10 @@ number         = 1*DIGIT
 
 According to the standard, negative values are not allowed. Still, Dovecot was observed sending `-1` breaking parsing.
 
-* Observed in: Dovecot (unknown version)
+* Observed in: Exchange/Dovecot (unknown)
 * Reported: No
 * Status: Unknown
-* Comment: None
+* Comment: Also see https://github.com/emersion/go-imap/issues/534
 * Proposed solution(s):
 	* Accept `-1`, emit warning, and rectify to `0` (implemented in [imap-codec])
 </details>
