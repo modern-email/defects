@@ -96,6 +96,19 @@ Some servers don't recognize both variants.
 	* Don't send an empty ID command. Note: Proxies may require extra attention!
 </details>
 
+<details>
+<summary>Trailing space in untagged `STATUS` response</summary>
+
+See https://github.com/emersion/go-imap/issues/540
+
+* Observed in: Exchange (outlook.office365.com:993)
+* Reported: No
+* Status: Unknown
+* Comment: None
+* Proposed solution(s):
+	* Consume the trailing space (making sure not to reproduce the defect.) Implemented in [go-imap](https://github.com/emersion/go-imap/pull/541).
+</details>
+
 #### Ambiguities
 
 <details>
