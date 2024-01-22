@@ -74,6 +74,28 @@ mod-sequence-value = 1*DIGIT
 * Proposed solution(s): None
 </details>
 
+<details>
+<summary>Not all variants of empty ID list are accepted</summary>
+
+IMAP's ID command allows `()`, and `nil` to encode an empty parameter list:
+
+```abnf
+id-params-list = "(" [field-value *(SP field-value)] ")" / nil
+field-value    = string SP nstring
+```
+
+See https://github.com/modern-email/defects/issues/12#issuecomment-1841669856.
+
+Some servers don't recognize both variants.
+
+* Observed in: Nemesis (GMX, Web.de, ...), and Exchange (See https://github.com/modern-email/defects/issues/12#issuecomment-1845491532)
+* Reported: No
+* Status: Unknown
+* Comment: None
+* Proposed solution(s):
+	* Don't send an empty ID command. Note: Proxies may require extra attention!
+</details>
+
 #### Ambiguities
 
 <details>
