@@ -106,7 +106,7 @@ See https://github.com/emersion/go-imap/issues/540
 * Status: Unknown
 * Comment: None
 * Proposed solution(s):
-	* Consume the trailing space (making sure not to reproduce the defect.) Implemented in [go-imap](https://github.com/emersion/go-imap/pull/541).
+	* Consume the trailing space (making sure not to reproduce the defect.) Implemented in [go-imap](https://github.com/emersion/go-imap/pull/541), [imap-codec](https://github.com/duesee/imap-codec/pull/468).
 </details>
 
 #### Ambiguities
